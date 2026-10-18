@@ -11,3 +11,4 @@ backend/dist/
 backend/*.spec
 desktop/node_modules/
 desktop/release/
+*.tsbuildinfo
