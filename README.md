@@ -2,7 +2,7 @@
 
 A local web app that turns your engineering course PDFs into practice problems. Upload lecture slides, polycopiés, past exams and tutorial booklets (fascicules de TD) per course and chapter, then generate problems with Claude that match your professors' notation and level. Worked solutions are revealed step by step with KaTeX, and every attempt you mark (correct / partial / wrong) feeds a dashboard and a weak-spot mode.
 
-Everything runs on your machine: the database is a SQLite file and your PDFs stay in `data/`. Only the text excerpts needed for a generation request are sent to the Claude API.
+Everything runs on your machine, as a Mac app or from source: the database is a SQLite file and your PDFs stay in `data/`. Only the text excerpts needed for a generation request are sent to the Claude API.
 
 ## Features
 
@@ -18,7 +18,38 @@ Everything runs on your machine: the database is a SQLite file and your PDFs sta
 - **PDF export**: a print layout of any problem set with solutions at the end, inline, or omitted; use the browser's "Save as PDF" (equations stay sharp).
 - Dark mode (follows your system, toggle in the header).
 
-## Requirements
+## Mac app (.dmg)
+
+ExamForge also ships as a regular macOS app: it opens in its own window, lives in the Dock, and needs no browser and no terminal. Inside, an Electron shell starts the bundled Python engine on a private localhost port and shows the same interface.
+
+### Get the .dmg
+
+**Option A: build it on GitHub (no setup on your Mac).** In the repo, open **Actions → Build macOS app → Run workflow**. When it finishes, download `ExamForge-macOS-arm64` (Apple Silicon: M1–M4) or `ExamForge-macOS-x64` (Intel) from the run's **Artifacts**, and unzip it to get the `.dmg`. Pushing a tag like `v0.2.0` also triggers it.
+
+**Option B: build it on your Mac.** You need Python 3.10+, Node 18+ and the Xcode command-line tools (`xcode-select --install`). Then:
+
+```bash
+make dmg        # or ./desktop/build.sh
+```
+
+The result is `desktop/release/ExamForge-<version>-<arch>.dmg`, built for your Mac's processor.
+
+### Install and first launch
+
+1. Open the `.dmg` and drag **ExamForge** to **Applications**.
+2. The app is not signed with an Apple Developer ID, so the first time macOS blocks it. **Right-click → Open → Open** (on recent macOS: try to open it once, then **System Settings → Privacy & Security → Open Anyway**). Alternatively run `xattr -dr com.apple.quarantine /Applications/ExamForge.app`. You only do this once.
+3. Go to **Settings** in the app and paste your Anthropic API key. It is stored in `~/Library/Application Support/ExamForge/.env`, readable only by you.
+4. For scanned PDFs, install Tesseract once with `brew install tesseract tesseract-lang`; the app finds it automatically.
+
+Your courses, PDFs and progress live in `~/Library/Application Support/ExamForge` (the **Show in Finder** button in Settings opens it). Updating the app by dragging a newer version into Applications keeps them.
+
+**Export PDF** in the app opens a native save dialog and writes the PDF directly.
+
+`make app` opens the desktop window from the source tree without packaging, which is handy while developing.
+
+## Running from source (browser)
+
+### Requirements
 
 - **Python 3.10+**
 - **Node.js 18+** (includes npm)
@@ -28,7 +59,7 @@ Everything runs on your machine: the database is a SQLite file and your PDFs sta
   - Windows: install from [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki), tick "French" under additional languages, and add the install folder (e.g. `C:\Program Files\Tesseract-OCR`) to your PATH.
 - An **Anthropic API key** from [console.anthropic.com](https://console.anthropic.com) (needed for generation, solve, variants, tagging and re-transcription; uploading and practicing booklet exercises work without it).
 
-## Setup and run
+### Setup and run
 
 ```bash
 cd examforge
@@ -43,7 +74,7 @@ The first run creates a virtual environment in `.venv`, installs the Python and 
 
 Ctrl+C stops both. If you forget to create `.env`, the launcher copies `.env.example` for you; restart after adding the key.
 
-### Configuration (`.env`)
+#### Configuration (`.env`)
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -85,7 +116,8 @@ The tests build small PDFs on the fly (text lecture, text booklet, scanned bookl
 - **"No text found" on a scanned PDF**: Tesseract isn't installed or not on PATH. Install it (see Requirements) and click **Re-extract** on the document.
 - **Equations look garbled**: that's PDF text extraction. Open the exercise in **Review split** and use **Re-transcribe with Claude**. For lecture material it matters less: Claude is told the excerpts may be garbled and rewrites math in LaTeX.
 - **Exercises split badly**: use the **Raw text** tab to split at the cursor, or merge with the next exercise. Re-extracting the document re-runs the parser and discards manual fixes (your past attempts stay in the stats).
-- **Generation error about the API key**: check `.env` at the repo root, then restart `make dev`.
+- **Generation error about the API key**: set it in **Settings** (from source, it is saved to `.env` at the repo root).
+- **Mac app says it stopped or could not start**: the engine log is in `~/Library/Application Support/ExamForge/logs/engine.log`.
 - **Port already in use**: stop the other process on 8000 or 5173, or change the ports in `run.py` and `frontend/vite.config.ts`.
 
 ## Project layout
@@ -95,5 +127,6 @@ backend/   FastAPI app (app/), services (extraction, booklet parser, retrieval, 
 frontend/  React + Vite + Tailwind + KaTeX
 docs/      design notes
 data/      created at runtime: examforge.db and uploads (git-ignored)
+desktop/   Electron shell (main.js, preload.js), build script for the .dmg, app icon
 run.py     one-command launcher used by `make dev`
 ```

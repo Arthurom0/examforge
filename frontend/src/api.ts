@@ -120,6 +120,30 @@ export interface TopicStat {
   success_rate: number;
   smoothed: number;
 }
+export interface AppSettings {
+  api_key_configured: boolean;
+  api_key_hint: string;
+  model: string;
+  effort: "low" | "medium" | "high" | "xhigh" | "max";
+  env_file: string;
+  data_dir: string;
+  ocr_available: boolean;
+  tesseract_path: string | null;
+}
+
+/** Exposed by the Electron preload script; undefined in a normal browser. */
+export interface DesktopBridge {
+  savePDF: (suggestedName: string) => Promise<{ saved: boolean; path?: string }>;
+  openDataFolder: () => Promise<void>;
+  version: string;
+}
+declare global {
+  interface Window {
+    examforge?: DesktopBridge;
+  }
+}
+export const desktop = (): DesktopBridge | undefined => window.examforge;
+
 export interface Health {
   ok: boolean;
   api_key_configured: boolean;
@@ -158,6 +182,9 @@ const qs = (params: Record<string, string | number | null | undefined>) => {
 
 export const api = {
   health: () => request<Health>("/api/health"),
+  settings: () => request<AppSettings>("/api/settings"),
+  saveSettings: (body: { api_key?: string; model?: string; effort?: string }) =>
+    request<AppSettings>("/api/settings", json("PUT", body)),
 
   courses: () => request<Course[]>("/api/courses"),
   createCourse: (name: string) => request<Course>("/api/courses", json("POST", { name })),

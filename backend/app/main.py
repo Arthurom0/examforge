@@ -1,12 +1,14 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .db import init_db
-from .routers import courses, documents, exercises, generation, tracking
+from .routers import app_settings, courses, documents, exercises, generation, tracking
 from .services.extraction import ocr_available
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -26,7 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (courses, documents, exercises, generation, tracking):
+for r in (app_settings, courses, documents, exercises, generation, tracking):
     app.include_router(r.router)
 
 
@@ -39,3 +41,17 @@ def health():
         "ocr_available": ocr_available(),
         "ocr_langs": settings.ocr_langs,
     }
+
+
+# Desktop app: the backend also serves the built frontend (single-page app, so unknown paths get index.html).
+if settings.static_dir and Path(settings.static_dir, "index.html").exists():
+    _static = Path(settings.static_dir).resolve()
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def spa(path: str):
+        if path.startswith("api/"):
+            raise HTTPException(404, "Not found")
+        target = (_static / path).resolve()
+        if path and target.is_file() and _static in target.parents:
+            return FileResponse(target)
+        return FileResponse(_static / "index.html")

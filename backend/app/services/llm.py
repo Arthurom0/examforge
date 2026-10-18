@@ -22,14 +22,16 @@ class LLMError(RuntimeError):
 
 
 _client: anthropic.Anthropic | None = None
+_client_key: str | None = None
 
 
 def client() -> anthropic.Anthropic:
-    global _client
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        raise LLMError("ANTHROPIC_API_KEY is not set. Add it to the .env file at the repo root and restart.")
-    if _client is None:
-        _client = anthropic.Anthropic()
+    global _client, _client_key
+    key = os.getenv("ANTHROPIC_API_KEY")
+    if not key:
+        raise LLMError("No Anthropic API key configured. Add it in Settings.")
+    if _client is None or key != _client_key:  # the key can change from the Settings page
+        _client, _client_key = anthropic.Anthropic(api_key=key), key
     return _client
 
 
@@ -48,7 +50,7 @@ def call_structured(content: str | list, schema: type[T], *, system: str = SYSTE
         ) as stream:
             message = stream.get_final_message()
     except anthropic.AuthenticationError as exc:
-        raise LLMError("The Anthropic API key was rejected. Check ANTHROPIC_API_KEY in .env.") from exc
+        raise LLMError("The Anthropic API key was rejected. Check it in Settings.") from exc
     except anthropic.RateLimitError as exc:
         raise LLMError("Rate limited by the Anthropic API. Wait a minute and try again.") from exc
     except anthropic.BadRequestError as exc:

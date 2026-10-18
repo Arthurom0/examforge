@@ -6,3 +6,8 @@ __pycache__/
 node_modules/
 frontend/dist/
 .pytest_cache/
+backend/build/
+backend/dist/
+backend/*.spec
+desktop/node_modules/
+desktop/release/

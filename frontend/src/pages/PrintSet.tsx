@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api } from "../api";
+import { api, desktop } from "../api";
 import { DIFF_LABEL, ProblemStatement, Solution } from "../components/ProblemView";
 import { ErrorBox, Spinner, useLoad } from "../components/ui";
 
@@ -11,6 +11,8 @@ export default function PrintSet() {
   const id = Number(useParams().id);
   const set = useLoad(() => api.set(id), [id]);
   const [mode, setMode] = useState<Mode>("appendix");
+  const [savedTo, setSavedTo] = useState<string | null>(null);
+  const bridge = desktop();
 
   // Printing always uses the light theme.
   useEffect(() => {
@@ -50,9 +52,27 @@ export default function PrintSet() {
             <input type="radio" checked={mode === m} onChange={() => setMode(m)} /> {label}
           </label>
         ))}
-        <button onClick={() => window.print()} className="ml-auto rounded-lg bg-indigo-600 px-4 py-1.5 font-medium text-white hover:bg-indigo-500">
-          Print / Save as PDF
-        </button>
+        {savedTo && <span className="ml-auto text-xs text-emerald-700">Saved to {savedTo}</span>}
+        {bridge ? (
+          <button
+            onClick={async () => {
+              const r = await bridge.savePDF(`${s.title.replace(/[\\/:*?"<>|]+/g, "-")}.pdf`);
+              if (r.saved && r.path) setSavedTo(r.path);
+            }}
+            className={`${savedTo ? "" : "ml-auto"} rounded-lg bg-indigo-600 px-4 py-1.5 font-medium text-white hover:bg-indigo-500`}
+          >
+            Save as PDF…
+          </button>
+        ) : (
+          <button onClick={() => window.print()} className="ml-auto rounded-lg bg-indigo-600 px-4 py-1.5 font-medium text-white hover:bg-indigo-500">
+            Print / Save as PDF
+          </button>
+        )}
+        {bridge && (
+          <button onClick={() => window.print()} className="rounded-lg px-3 py-1.5 font-medium text-slate-600 hover:bg-slate-200">
+            Print…
+          </button>
+        )}
       </div>
 
       <article className="mx-auto max-w-[800px] px-10 py-10 print:px-0 print:py-0">

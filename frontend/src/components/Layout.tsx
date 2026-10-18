@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { api, Health } from "../api";
 
 const NAV = [
@@ -8,6 +8,7 @@ const NAV = [
   { to: "/generate", label: "Generate" },
   { to: "/sets", label: "Problem sets" },
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/settings", label: "Settings" },
 ];
 
 function ThemeToggle() {
@@ -43,9 +44,23 @@ function ThemeToggle() {
 export default function Layout() {
   const [health, setHealth] = useState<Health | null>(null);
   const [down, setDown] = useState(false);
+  const location = useLocation();
+  // Re-check on navigation and after Settings changes so the key banner stays accurate.
+  const [settingsVersion, setSettingsVersion] = useState(0);
   useEffect(() => {
-    api.health().then(setHealth).catch(() => setDown(true));
+    const onChange = () => setSettingsVersion((v) => v + 1);
+    window.addEventListener("examforge:settings-changed", onChange);
+    return () => window.removeEventListener("examforge:settings-changed", onChange);
   }, []);
+  useEffect(() => {
+    api
+      .health()
+      .then((h) => {
+        setHealth(h);
+        setDown(false);
+      })
+      .catch(() => setDown(true));
+  }, [location.pathname, settingsVersion]);
 
   return (
     <div className="min-h-screen">
@@ -79,9 +94,16 @@ export default function Layout() {
       {(down || (health && !health.api_key_configured)) && (
         <div className="border-b border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
           <div className="mx-auto max-w-6xl px-4 py-2 text-sm">
-            {down
-              ? "The backend is not reachable on port 8000. Start everything with `make dev`."
-              : "No ANTHROPIC_API_KEY found. Uploading works, but generation needs the key in the .env file (then restart)."}
+            {down ? (
+              "The ExamForge engine is not responding. Restart the app (or `make dev` in development)."
+            ) : (
+              <>
+                No Anthropic API key yet. Uploading and practicing work, but generating problems needs one.{" "}
+                <Link to="/settings" className="font-medium underline">
+                  Add it in Settings
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

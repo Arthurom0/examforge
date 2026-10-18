@@ -1,0 +1,62 @@
+{
+  "name": "examforge",
+  "productName": "ExamForge",
+  "version": "0.2.0",
+  "description": "Practice problems from your engineering course PDFs",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:linux": "electron-builder --linux AppImage"
+  },
+  "build": {
+    "appId": "app.examforge.desktop",
+    "productName": "ExamForge",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "loading.html"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist/examforge-server",
+        "to": "backend/examforge-server"
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "frontend"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.education",
+      "icon": "build/icon.png",
+      "identity": null
+    },
+    "dmg": {
+      "title": "ExamForge",
+      "artifactName": "ExamForge-${version}-${arch}.dmg"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Education"
+    },
+    "publish": null
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "author": "Arthur",
+  "repository": "github:Arthurom0/examforge"
+}

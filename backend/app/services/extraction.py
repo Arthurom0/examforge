@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import logging
 import re
+import os
 import shutil
 from dataclasses import dataclass
 
@@ -36,8 +37,20 @@ class PageText:
     ocr: bool = False
 
 
+# GUI apps on macOS don't get the shell PATH, so look where Homebrew/MacPorts install Tesseract.
+_TESSERACT_CANDIDATES = ("/opt/homebrew/bin/tesseract", "/usr/local/bin/tesseract", "/opt/local/bin/tesseract",
+                         r"C:\Program Files\Tesseract-OCR\tesseract.exe")
+
+
+def tesseract_path() -> str | None:
+    found = shutil.which("tesseract")
+    if found:
+        return found
+    return next((c for c in _TESSERACT_CANDIDATES if os.path.exists(c)), None)
+
+
 def ocr_available() -> bool:
-    return shutil.which("tesseract") is not None
+    return tesseract_path() is not None
 
 
 def clean_text(text: str) -> str:
@@ -54,6 +67,8 @@ def clean_text(text: str) -> str:
 def _ocr_page(page: fitz.Page) -> str:
     import pytesseract
     from PIL import Image
+
+    pytesseract.pytesseract.tesseract_cmd = tesseract_path() or "tesseract"
 
     pix = page.get_pixmap(dpi=OCR_DPI)
     img = Image.open(io.BytesIO(pix.tobytes("png")))

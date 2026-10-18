@@ -12,6 +12,7 @@ import Sets from "./pages/Sets";
 import Practice from "./pages/Practice";
 import PrintSet from "./pages/PrintSet";
 import Dashboard from "./pages/Dashboard";
+import Settings from "./pages/Settings";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -26,6 +27,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/sets" element={<Sets />} />
           <Route path="/sets/:id" element={<Practice />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

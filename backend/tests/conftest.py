@@ -9,6 +9,7 @@ import pytest
 _tmp = tempfile.mkdtemp(prefix="examforge-test-")
 os.environ["EXAMFORGE_DATA_DIR"] = _tmp
 os.environ["EXAMFORGE_DB_URL"] = f"sqlite:///{_tmp}/test.db"
+os.environ["EXAMFORGE_ENV_FILE"] = f"{_tmp}/.env"
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi.testclient import TestClient  # noqa: E402
