@@ -98,7 +98,7 @@ export default function Layout() {
               "The ExamForge engine is not responding. Restart the app (or `make dev` in development)."
             ) : (
               <>
-                No Anthropic API key yet. Uploading and practicing work, but generating problems needs one.{" "}
+                No {health?.provider_name ?? "AI"} API key yet. Uploading and practicing work, but generating problems needs one.{" "}
                 <Link to="/settings" className="font-medium underline">
                   Add it in Settings
                 </Link>

@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .db import init_db
 from .routers import app_settings, courses, documents, exercises, generation, tracking
+from .services import providers
 from .services.extraction import ocr_available
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -36,8 +37,10 @@ for r in (app_settings, courses, documents, exercises, generation, tracking):
 def health():
     return {
         "ok": True,
-        "api_key_configured": settings.has_api_key,
-        "model": settings.anthropic_model,
+        "provider": providers.active().id,
+        "provider_name": providers.active().name,
+        "api_key_configured": providers.active().configured,
+        "model": providers.active().model,
         "ocr_available": ocr_available(),
         "ocr_langs": settings.ocr_langs,
     }

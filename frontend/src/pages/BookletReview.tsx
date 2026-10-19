@@ -62,7 +62,7 @@ export default function BookletReview() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={autoTag} loading={tagging} title="Ask Claude to tag untagged exercises with topics">
+          <Button onClick={autoTag} loading={tagging} title="Ask the AI to tag untagged exercises with topics">
             Auto-tag topics
           </Button>
           <Link to={`/exercises?course=${doc.data?.course_id}`}>
@@ -189,9 +189,9 @@ function ExerciseEditor({
             variant="ghost"
             loading={busy === "transcribe"}
             onClick={() => act("transcribe", () => api.transcribeExercise(ex.id))}
-            title="Claude reads the page images and rewrites the exercise with proper LaTeX"
+            title="The AI reads the page images and rewrites the exercise with proper LaTeX (needs a provider with vision)"
           >
-            Re-transcribe with Claude
+            Re-transcribe from page images
           </Button>
           <Button variant="ghost" disabled={isLast} loading={busy === "merge"} onClick={() => act("merge", () => api.mergeNext(ex.id))}>
             Merge with next

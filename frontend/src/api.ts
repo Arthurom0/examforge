@@ -120,7 +120,25 @@ export interface TopicStat {
   success_rate: number;
   smoothed: number;
 }
+export interface ProviderInfo {
+  id: string;
+  label: string;
+  needs_key: boolean;
+  key_configured: boolean;
+  key_hint: string;
+  key_url: string;
+  model: string;
+  default_model: string;
+  suggested_models: string[];
+  base_url: string | null;
+  default_base_url: string | null;
+  vision: boolean;
+  effort_supported: boolean;
+}
+
 export interface AppSettings {
+  provider: string;
+  providers: ProviderInfo[];
   api_key_configured: boolean;
   api_key_hint: string;
   model: string;
@@ -146,6 +164,8 @@ export const desktop = (): DesktopBridge | undefined => window.examforge;
 
 export interface Health {
   ok: boolean;
+  provider: string;
+  provider_name: string;
   api_key_configured: boolean;
   model: string;
   ocr_available: boolean;
@@ -183,7 +203,7 @@ const qs = (params: Record<string, string | number | null | undefined>) => {
 export const api = {
   health: () => request<Health>("/api/health"),
   settings: () => request<AppSettings>("/api/settings"),
-  saveSettings: (body: { api_key?: string; model?: string; effort?: string }) =>
+  saveSettings: (body: { provider?: string; api_key?: string; model?: string; base_url?: string; effort?: string }) =>
     request<AppSettings>("/api/settings", json("PUT", body)),
 
   courses: () => request<Course[]>("/api/courses"),

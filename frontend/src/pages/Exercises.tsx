@@ -164,7 +164,7 @@ function ExerciseCard({ ex, chapterName, onChanged }: { ex: Exercise; chapterNam
           >
             Generate
           </Button>
-          {busy === "variants" && <span className="text-xs text-slate-500">Claude is writing and checking the variants…</span>}
+          {busy === "variants" && <span className="text-xs text-slate-500">Writing and checking the variants…</span>}
         </div>
       )}
 

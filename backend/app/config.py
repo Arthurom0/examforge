@@ -1,7 +1,7 @@
 """Settings loaded from a .env file.
 
 Dev (`make dev`): the repo-root .env. Desktop app: Electron sets EXAMFORGE_ENV_FILE and EXAMFORGE_DATA_DIR
-to ~/Library/Application Support/ExamForge, and the in-app Settings page writes the key there.
+to ~/Library/Application Support/ExamForge, and the in-app Settings page writes the provider keys there.
 """
 import os
 import sys
@@ -14,8 +14,7 @@ ROOT_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
 ENV_FILE = Path(os.getenv("EXAMFORGE_ENV_FILE", ROOT_DIR / ".env"))
 load_dotenv(ENV_FILE)
 
-EDITABLE_KEYS = ("ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ANTHROPIC_EFFORT")
-DEFAULTS = {"ANTHROPIC_MODEL": "claude-opus-5-5", "ANTHROPIC_EFFORT": "high"}
+DEFAULT_EFFORT = "high"
 
 
 def _data_dir() -> Path:
@@ -36,17 +35,10 @@ class Settings:
     static_dir: str | None = os.getenv("EXAMFORGE_STATIC_DIR")
 
     # Read on every access so changes from the Settings page apply without a restart.
-    @property
-    def anthropic_model(self) -> str:
-        return os.getenv("ANTHROPIC_MODEL") or DEFAULTS["ANTHROPIC_MODEL"]
-
+    # Provider, model and key live in services/providers.py.
     @property
     def anthropic_effort(self) -> str:
-        return os.getenv("ANTHROPIC_EFFORT") or DEFAULTS["ANTHROPIC_EFFORT"]
-
-    @property
-    def has_api_key(self) -> bool:
-        return bool(os.getenv("ANTHROPIC_API_KEY"))
+        return os.getenv("ANTHROPIC_EFFORT") or DEFAULT_EFFORT
 
 
 settings = Settings()

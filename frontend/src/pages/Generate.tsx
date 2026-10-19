@@ -160,7 +160,7 @@ export default function Generate() {
 
         <ErrorBox error={err} />
         <Button variant="primary" className="w-full py-2.5" disabled={!types.length || !course} loading={busy} onClick={submit}>
-          {busy ? "Claude is writing and self-checking the problems…" : `Generate ${count} problem${count > 1 ? "s" : ""}`}
+          {busy ? "Writing and self-checking the problems…" : `Generate ${count} problem${count > 1 ? "s" : ""}`}
         </Button>
         {busy && <p className="text-center text-xs text-slate-500">This usually takes 30 s to 2 min, longer for exam-level sets.</p>}
       </Card>

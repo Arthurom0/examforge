@@ -38,7 +38,7 @@ The result is `desktop/release/ExamForge-<version>-<arch>.dmg`, built for your M
 
 1. Open the `.dmg` and drag **ExamForge** to **Applications**.
 2. The app is not signed with an Apple Developer ID, so the first time macOS blocks it. **Right-click → Open → Open** (on recent macOS: try to open it once, then **System Settings → Privacy & Security → Open Anyway**). Alternatively run `xattr -dr com.apple.quarantine /Applications/ExamForge.app`. You only do this once.
-3. Go to **Settings** in the app and paste your Anthropic API key. It is stored in `~/Library/Application Support/ExamForge/.env`, readable only by you.
+3. Go to **Settings** in the app, pick an AI provider (Claude by default) and paste its API key. Keys are stored in `~/Library/Application Support/ExamForge/.env`, readable only by you. Ollama runs locally and needs no key.
 4. For scanned PDFs, install Tesseract once with `brew install tesseract tesseract-lang`; the app finds it automatically.
 
 Your courses, PDFs and progress live in `~/Library/Application Support/ExamForge` (the **Show in Finder** button in Settings opens it). Updating the app by dragging a newer version into Applications keeps them.
@@ -57,13 +57,13 @@ Your courses, PDFs and progress live in `~/Library/Application Support/ExamForge
   - macOS: `brew install tesseract tesseract-lang`
   - Ubuntu/Debian: `sudo apt install tesseract-ocr tesseract-ocr-fra tesseract-ocr-eng`
   - Windows: install from [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki), tick "French" under additional languages, and add the install folder (e.g. `C:\Program Files\Tesseract-OCR`) to your PATH.
-- An **Anthropic API key** from [console.anthropic.com](https://console.anthropic.com) (needed for generation, solve, variants, tagging and re-transcription; uploading and practicing booklet exercises work without it).
+- An API key for one AI provider (see [AI providers](#ai-providers)), or Ollama running locally. It is needed for generation, solve, variants, tagging and re-transcription; uploading and practicing booklet exercises work without it.
 
 ### Setup and run
 
 ```bash
 cd examforge
-cp .env.example .env        # then open .env and paste your key after ANTHROPIC_API_KEY=
+cp .env.example .env        # optional: paste a key there, or set it later in Settings
 make dev                    # or: python3 run.py   (Windows: python run.py)
 ```
 
@@ -78,11 +78,28 @@ Ctrl+C stops both. If you forget to create `.env`, the launcher copies `.env.exa
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | (empty) | Your API key. Never commit this file (`.env` is git-ignored). |
-| `ANTHROPIC_MODEL` | `claude-opus-5-5` | Model used for every request. |
-| `ANTHROPIC_EFFORT` | `high` | `low` … `max`. Higher means more careful solutions, but slower and pricier. |
+| `EXAMFORGE_PROVIDER` | `anthropic` | Which AI provider to use: `anthropic`, `openai`, `google`, `deepseek`, `xai` or `ollama`. |
+| `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `DEEPSEEK_API_KEY`, `XAI_API_KEY` | (empty) | One key per provider. Never commit this file (`.env` is git-ignored). |
+| `<PROVIDER>_MODEL` (e.g. `OPENAI_MODEL`) | see below | Model for that provider. |
+| `OLLAMA_BASE_URL` | `http://localhost:11434/v1` | Where Ollama listens. |
+| `ANTHROPIC_EFFORT` | `high` | Claude only: `low` … `max`. Higher means more careful solutions, but slower and pricier. |
 | `EXAMFORGE_DATA_DIR` | `data` | Where the SQLite database and uploaded PDFs are stored. |
 | `OCR_LANGS` | `fra+eng` | Tesseract languages. |
+
+## AI providers
+
+Pick the provider in **Settings**; every one goes through the same prompts, JSON schema, validation (units, MCQ answers, at least two solution steps, a written self-check) and one automatic retry.
+
+| Provider | Default model | Key from | Notes |
+|---|---|---|---|
+| Claude (Anthropic), default | `claude-opus-5-5` | console.anthropic.com | Native structured outputs and the effort setting. |
+| OpenAI | `gpt-6-astra` | platform.openai.com | |
+| Google AI (Gemini) | `gemini-4-argon` | aistudio.google.com | Uses Gemini's OpenAI-compatible endpoint. |
+| DeepSeek | `deepseek-v4-pro` | platform.deepseek.com | Text only: no re-transcription from page images. |
+| Grok (xAI) | `grok-4.7` | console.x.ai | |
+| Ollama (local) | `qwen3:8b` | none | Install Ollama, run `ollama pull qwen3:8b`. Text only. Slower and weaker on exam-level problems. |
+
+The model field accepts any model name the provider offers. To add a provider that speaks the OpenAI Chat Completions format, append an entry to `PROVIDERS` in `backend/app/services/providers.py`.
 
 ## Suggested workflow
 
